@@ -18,7 +18,7 @@ namespace Mango.Services.AuthAPI.Controllers
             _response = new ResponseDto();
         }
 
-        [HttpPost("register")]
+        [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegistrationRequestDto model)
         {
            var errorMessage = await _authService.Register(model);
@@ -26,12 +26,12 @@ namespace Mango.Services.AuthAPI.Controllers
             {
                 _response.IsSuccess = false;
                 _response.Message = errorMessage;
-                return BadRequest(errorMessage);
+                return BadRequest(_response);
             }
             return Ok(_response);
         }
 
-        [HttpPost("login")]
+        [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto model)
         {
             var loginResponse = await _authService.Login(model);
@@ -39,9 +39,22 @@ namespace Mango.Services.AuthAPI.Controllers
             {
                 _response.IsSuccess = false;
                 _response.Message = "Username or password is incorrect";
-                return BadRequest(loginResponse);
+                return BadRequest(_response);
             }
             _response.Result = loginResponse;
+            return Ok(_response);
+        }
+
+        [HttpPost("AssignRole")]
+        public async Task<IActionResult> AssignRole([FromBody] RegistrationRequestDto model)
+        {
+            var assignRoleResult = await _authService.AssignRole(model.Email, model.Role.ToUpper());
+            if (!assignRoleResult)
+            {
+                _response.IsSuccess = false;
+                _response.Message = "Error Eccored";
+                return BadRequest(_response);
+            }
             return Ok(_response);
         }
     }
