@@ -46,7 +46,7 @@ namespace Mango.Web.Controllers
             }
             else
             {
-                ModelState.AddModelError("CustomError",response.Message);
+                TempData["error"] = response.Message;
                 return View(model);
             }
         }
@@ -83,6 +83,10 @@ namespace Mango.Web.Controllers
                     return RedirectToAction(nameof(Login));
                 }
             }
+            else
+            {
+                TempData["error"] = response.Message;
+            }
 
 
             var roleList = new List<SelectListItem>()
@@ -94,12 +98,12 @@ namespace Mango.Web.Controllers
             return View(model);
         }
 
-        [HttpGet]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            LoginRequestDto loginRequest = new LoginRequestDto();
-            return View(loginRequest);
-        }
+            await HttpContext.SignOutAsync();
+            _tokenProvider.CleanToken();
+            return RedirectToAction("Index", "Home");
+        } 
 
         private async Task SighInUser(LoginResponseDto model)
         {
@@ -118,6 +122,10 @@ namespace Mango.Web.Controllers
 
             identity.AddClaim(new Claim(ClaimTypes.Name,
                 jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Email).Value));
+
+            identity.AddClaim(new Claim(ClaimTypes.Role,
+                jwt.Claims.FirstOrDefault(u => u.Type == "role").Value));
+
 
             var principal = new ClaimsPrincipal(identity);
 
